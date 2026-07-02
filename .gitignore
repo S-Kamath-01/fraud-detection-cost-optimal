@@ -1,0 +1,49 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.Python
+build/
+dist/
+
+# --- Virtual environments ---
+fraud-det/
+venv/
+.venv/
+env/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- Data (large, never commit raw/processed data) ---
+/data/raw/*
+/data/processed/*
+!/data/raw/.gitkeep
+!/data/processed/.gitkeep
+/data_exploration/*.csv
+
+# --- Model artifacts ---
+checkpoints/*
+!checkpoints/.gitkeep
+*.pkl
+*.joblib
+*.h5
+
+# --- Env / secrets ---
+.env
+.env.local
+*.pem
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# --- Logs ---
+*.log
