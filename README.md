@@ -117,7 +117,13 @@ fraud-detection/
   index. Validation set is reserved exclusively for cost-optimal threshold
   search; test set is only touched for final reporting.
 
-### 2. Feature selection (`src/features.py`) — not yet built
+### 2. Feature selection (`src/features.py`) — done
+
+Diagnostic script (not automated selection) that checks correlation with
+`isFraud`, fraud-vs-non-fraud group means, and class-conditional zero-rates
+for each candidate feature, run on the train split only. Used to identify
+target leakage in the destination-side balance fields before any model was
+trained. See Findings below for the resulting feature list and reasoning.
 
 ### 3. Training (`src/train.py`) — not yet built
 
@@ -167,6 +173,38 @@ features/counts, not raw fraud rate alone, since rate alone is a misleading
 signal when the denominator (transaction volume) isn't stable.
 
 ---
+
+**Destination-side balance fields leak the label — confirmed both empirically
+and by dataset documentation.** `newbalanceDest == 0` occurs in 0.47% of
+legitimate transactions but 49.7% of fraud transactions in train — a ~105x
+gap. PaySim's own documentation states that fraud transactions are
+cancelled after detection, and post-transaction balance fields reflect that
+cancellation rather than the transaction as it looked at decision time. This
+is target leakage: information that would not exist yet at the moment a
+real fraud decision has to be made. `oldbalanceDest`, `newbalanceDest`,
+`dest_balance_delta`, and `dest_balance_mismatch` were dropped as a result.
+
+The origin side was checked for the same pattern and does not show it —
+`newbalanceOrig == 0` occurs in 90.2% of legitimate transactions vs. 98.3%
+of fraud (a mild, plausible gap, not a near-binary split), consistent with
+the cancellation mechanism affecting the receiver's recorded balance rather
+than the sender's. `orig_balance_delta`/`orig_balance_mismatch` were still
+dropped, separately, because the direction of their group-mean difference
+was backwards from the intended "fraud fails to reconcile" hypothesis
+(94% of non-fraud rows show a mismatch vs. 1.5% of fraud rows) — the raw
+components (`oldbalanceOrg`, `newbalanceOrig`) are kept instead, since
+they carry the same information without an unexplained sign reversal.
+
+`is_merchant_dest` was dropped after confirming it has zero variance within
+the TRANSFER/CASH_OUT scope (merchants only ever appear as CASH_IN/PAYMENT
+destinations, which are already excluded).
+
+**Final feature set:** `amount`, `oldbalanceOrg`, `newbalanceOrig`, and
+`type` (encoded as a single binary `is_transfer`, since only two values
+remain after scoping). All four are confirmed knowable at the time a real
+fraud decision would need to be made, and each has a specific, individually
+defensible reason for inclusion — see `src/features.py` for the diagnostic
+that produced this table.
 
 ## Setup
 
