@@ -183,3 +183,7 @@ Download `paysim.csv` from
 ```bash
 python src/preprocess.py
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
