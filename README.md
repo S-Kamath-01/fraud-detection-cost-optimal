@@ -206,7 +206,38 @@ The chosen threshold, cost matrix, and test-set results are saved to
 `checkpoints/threshold_config.json` as a deployment artifact — this is what
 `main.py` will load alongside the model to make real decisions.
 
-### 5. Explainability (`src/explain.py`) — not yet built
+### 5. Explainability (`src/explain.py`) — done
+
+Uses `shap.TreeExplainer` (exact for tree ensembles, fast enough to run
+per-request) rather than the generic model-agnostic `KernelExplainer`.
+Provides two things: a one-time global feature importance summary (run on
+a 5,000-row sample of train, for speed), and `explain_prediction()`, a
+reusable function that computes exact SHAP values for a single row and
+returns a plain-language explanation — this is what `main.py` will call
+for every `/predict` request so each decision comes with a stated reason,
+not just a probability.
+
+**Global importance** matches the correlation findings from feature
+selection: `oldbalanceOrg` dominates (mean |SHAP| 5.21), then `amount`
+(3.47), `newbalanceOrig` (1.53), and `is_transfer` barely registers (0.15)
+— consistent with `type` showing almost no fraud-rate difference between
+TRANSFER and CASH_OUT in the earlier diagnostic. This cross-validates the
+`features.py` analysis using a completely different method (SHAP vs. raw
+correlation), which is a stronger claim than either method alone.
+
+![SHAP global feature importance](assets/img/shap_summary.png)
+
+**Example — a small-value fraud case (₹181):** `oldbalanceOrg` for this
+row contributed *negatively* to the fraud prediction (-4.76), since ₹181
+is far below the average fraud account balance (~₹1.6M) the model has
+learned to associate with fraud. But `amount` contributed strongly
+positively (+8.68) and dominated, because `amount` exactly equals
+`oldbalanceOrg` here — the account was drained to precisely zero. The
+model correctly reasoned through conflicting evidence (small, unremarkable
+balance vs. a complete-drain pattern) and landed at 99.25% fraud
+probability. This is a better illustration for the explainability story
+than a large-balance fraud case would be, since it shows the model
+weighing competing signals rather than keying off one obvious feature.
 
 ### 6. Drift monitoring (`src/drift.py`) — not yet built
 
