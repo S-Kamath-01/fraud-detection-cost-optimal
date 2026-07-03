@@ -242,7 +242,49 @@ probability. This is a better illustration for the explainability story
 than a large-balance fraud case would be, since it shows the model
 weighing competing signals rather than keying off one obvious feature.
 
-### 6. Drift monitoring (`src/drift.py`) — not yet built
+### 6. Drift monitoring (`src/drift.py`) — done
+
+Implements both PSI (Population Stability Index) and the KS
+(Kolmogorov-Smirnov) statistic, using standard PSI interpretation
+thresholds (< 0.10 no shift, 0.10–0.25 moderate, > 0.25 significant).
+Written as a generic `drift_report(reference_df, current_df,
+feature_columns)` function, reusable once `main.py` exists — it will call
+the same function with train vs. recently logged Postgres predictions
+instead of train vs. test.
+
+No live prediction log exists yet, so **train (reference) vs. test
+(current)** is used as a stand-in — which usefully doubles as a real test
+of the volume/fraud-rate drift already documented above, rather than a
+synthetic example.
+
+| Feature | PSI | Interpretation | KS statistic | KS p-value |
+|---|---|---|---|---|
+| amount | 0.0004 | no significant shift | 0.0095 | 0.0023 |
+| oldbalanceOrg | 0.0514 | no significant shift | 0.1164 | ~0 |
+| newbalanceOrig | ~0 | no significant shift | 0.0104 | 0.0006 |
+| is_transfer | 0.0104 | no significant shift | 0.0415 | ~0 |
+
+**PSI and KS p-values disagree here, and the disagreement is itself worth
+understanding rather than picking whichever looks better.** All KS
+p-values are near zero, nominally "highly significant" — but the KS test's
+p-value is extremely sensitive to sample size, and train (~2.65M rows) vs.
+test (~38K rows) is large enough that even trivially small distributional
+differences register as statistically significant. The KS **statistic**
+(effect size, not p-value) tells the more honest story: `oldbalanceOrg` at
+0.116 is the largest shift, the rest are modest (0.01–0.04) — consistent
+with PSI, which isn't inflated by sample size and is the more standard
+metric for production drift monitoring for exactly this reason. Both
+metrics agree that `oldbalanceOrg` shows the most drift, though not enough
+to cross even the moderate PSI threshold — a defensible, non-alarmist
+result that demonstrates the monitor discriminating *degree* of shift
+rather than just flagging yes/no.
+
+Fraud rate itself was deliberately excluded as a monitored feature — since
+fraud count is roughly constant over time while transaction volume
+collapses (see Findings above), raw fraud-rate drift would conflate that
+known artifact with genuine feature distribution shift. Drift is measured
+on the model's actual input features instead, which is what would actually
+invalidate the model's assumptions in production.
 
 ### 7. Serving (`src/main.py`, `streamlit_app/app.py`) — not yet built
 
