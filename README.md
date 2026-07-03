@@ -125,7 +125,45 @@ for each candidate feature, run on the train split only. Used to identify
 target leakage in the destination-side balance fields before any model was
 trained. See Findings below for the resulting feature list and reasoning.
 
-### 3. Training (`src/train.py`) — not yet built
+### 3. Training (`src/train.py`) — done
+
+Trains a class-weighted logistic regression baseline (`class_weight=
+"balanced"`, deliberately untuned — it exists as a reference point, not a
+candidate for production) and an XGBoost model with `scale_pos_weight`
+computed from the actual train class counts. Class weighting was chosen
+over resampling (SMOTE/undersampling): it doesn't invent synthetic fraud
+examples, doesn't discard real data (train has 2.65M rows — no shortage),
+and keeps output probabilities uncalibrated-by-resampling, which matters
+for `threshold.py`'s cost-based search and `explain.py`'s SHAP values
+downstream.
+
+Results on val (recall: val's fraud rate is 1.50% vs. train's 0.22%, a
+consequence of the volume-collapse artifact documented above — these
+metrics are measured on a harder, later-in-time slice than the model was
+trained on, not a matched i.i.d. split):
+
+| Model | ROC-AUC | PR-AUC |
+|---|---|---|
+| Logistic Regression (baseline) | 0.9767 | 0.7088 |
+| XGBoost (production) | 0.9995 | 0.9648 |
+
+PR-AUC is the more informative number given the low base rate — ROC-AUC
+can look strong even for a mediocre classifier when negatives vastly
+outnumber positives. Logistic regression's confusion matrix at a naive 0.5
+threshold (5,739 false positives against 1,055 true positives) shows a
+linear decision boundary straining against classes that aren't linearly
+separable in this feature space — a genuine, untuned baseline result, not
+a strawman. XGBoost at the same threshold (363 false positives, 8 false
+negatives) is a meaningfully cleaner separation without being suspiciously
+perfect — worth noting as mild corroborating evidence that the destination-
+side leakage removal actually worked, since a model trained on leaked
+labels would typically show near-zero errors on both sides.
+
+Only the XGBoost model is saved (`checkpoints/xgb_model.json`) — this is
+the model that flows into `threshold.py`, `explain.py`, and `main.py`. The
+0.5-threshold confusion matrices above are explicitly provisional; the real
+decision threshold is derived from a cost matrix in `threshold.py`, not
+defaulted.
 
 ### 4. Cost-optimal threshold search (`src/threshold.py`) — not yet built
 
