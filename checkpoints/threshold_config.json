@@ -1,0 +1,8 @@
+{
+  "threshold": 0.11,
+  "fp_cost": 500,
+  "fn_fixed_cost": 2000,
+  "test_cost_at_threshold": 743045.0800000001,
+  "test_cost_at_naive_0.5": 1164335.51,
+  "test_savings_pct": 36.182906591932415
+}

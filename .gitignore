@@ -18,6 +18,8 @@ env/
 .ipynb_checkpoints/
 
 # --- Data (large, never commit raw/processed data) ---
+# Scoped to actual project subpaths, not a bare "data/" match,
+# so this won't accidentally swallow something like src/data/ later.
 /data/raw/*
 /data/processed/*
 !/data/raw/.gitkeep
@@ -25,8 +27,15 @@ env/
 /data_exploration/*.csv
 
 # --- Model artifacts ---
+# xgb_model.json, feature_columns.json, threshold_config.json are
+# deployment artifacts (not intermediate training state) and ARE
+# committed - see README "Deployment artifacts" note. Everything else
+# in checkpoints/ (e.g. threshold_search_results.csv) stays ignored.
 checkpoints/*
 !checkpoints/.gitkeep
+!checkpoints/xgb_model.json
+!checkpoints/feature_columns.json
+!checkpoints/threshold_config.json
 *.pkl
 *.joblib
 *.h5
