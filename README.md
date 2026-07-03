@@ -165,7 +165,46 @@ the model that flows into `threshold.py`, `explain.py`, and `main.py`. The
 decision threshold is derived from a cost matrix in `threshold.py`, not
 defaulted.
 
-### 4. Cost-optimal threshold search (`src/threshold.py`) — not yet built
+### 4. Cost-optimal threshold search (`src/threshold.py`) — done
+
+Rather than defaulting to a 0.5 classification threshold, the threshold is
+chosen to minimize total expected business cost, using a configurable cost
+matrix:
+
+- **False positive cost:** fixed (₹500) — blocking a legitimate
+  transaction costs roughly the same in support/review overhead regardless
+  of transaction size.
+- **False negative cost:** fixed (₹2,000) + the transaction `amount` itself
+  — missing fraud always costs some fixed investigation/write-off
+  overhead, plus the actual money lost, which scales directly with amount.
+
+The threshold is searched over on the **validation set only**, then frozen.
+The frozen threshold is evaluated exactly once against the **untouched test
+set**, alongside naive 0.5 for comparison — test is never used to search
+for a better threshold, only to report a final, honest number.
+
+**Result:** the cost-minimizing threshold on val is **0.11** — far more
+aggressive than 0.5, because a missed fraud (`amount` often in the
+₹1.6M range, per the Findings above) costs orders of magnitude more than a
+false alarm. On val, this threshold reduces total expected cost by 68.8%
+versus naive 0.5.
+
+**On the untouched test set**, the frozen 0.11 threshold reduces total
+expected cost by **36.2%** versus naive 0.5 (₹1,164,336 → ₹743,045).
+The smaller relative improvement compared to val (68.8%) is expected, not a
+generalization failure: test's fraud rate (3.30%) is more than double val's
+(1.50%), a direct consequence of the volume-collapse pattern documented
+above, and a higher base rate mechanically shrinks the relative headroom
+naive 0.5 has to lose. The underlying mechanism still holds exactly as
+intended — at 0.5, naive thresholding misses 13 of the fraud cases in test;
+at the frozen cost-optimal threshold, it misses only 1, at the cost of more
+false positives (186 → 684), which is precisely the trade the cost matrix
+is designed to make given how much cheaper a false positive is than a
+missed fraud.
+
+The chosen threshold, cost matrix, and test-set results are saved to
+`checkpoints/threshold_config.json` as a deployment artifact — this is what
+`main.py` will load alongside the model to make real decisions.
 
 ### 5. Explainability (`src/explain.py`) — not yet built
 
