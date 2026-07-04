@@ -480,6 +480,26 @@ rerunning `train.py` and `threshold.py`; committing them is a convenience
 for reproducible deployment, not a substitute for the training pipeline
 that produced them.
 
+## Live Deployment
+
+**API:** https://fraud-detection-cost-optimal.onrender.com/docs
+
+Deployed on Render's free tier from the same `Dockerfile` used for local
+Docker testing above. Two things worth knowing if the link is slow on
+first load or the drift report looks empty:
+
+- **Cold starts:** free web services spin down after 15 minutes of
+  inactivity and take 30-60 seconds to wake on the next request. The
+  first request after idle time may time out or be slow — a retry
+  resolves it.
+- **Database resets:** Render's free Postgres expires 30 days after
+  creation. Logged predictions (and therefore `/drift-report`'s available
+  history) reset whenever the database is recreated.
+
+Verified: `/`, `/health`, `/predict`, and `/drift-report` all tested
+against the live deployment, with `/predict` returning results identical
+to local and Docker testing for the same known example.
+
 ## Setup
 
 ```bash
