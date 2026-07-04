@@ -18,7 +18,7 @@ import pandas as pd
 st.set_page_config(page_title="Fraud Detection Dashboard", layout="wide")
 
 if "backend_url" not in st.session_state:
-    st.session_state.backend_url = "http://localhost:8000"
+    st.session_state.backend_url = "https://fraud-detection-cost-optimal.onrender.com"
 
 with st.sidebar:
     st.header("Backend")
