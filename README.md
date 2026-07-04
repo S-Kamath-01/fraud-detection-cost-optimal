@@ -31,19 +31,19 @@ deployed end-to-end.
 
 ### Home
 
-![Dashboard Home](assets/images/dashboard-home.png)
+![Dashboard Home](assets/img/dashboard-home.png)
 
 ### Prediction + SHAP Explainability
 
-![Prediction](assets/images/prediction-shap.png)
+![Prediction](assets/img/prediction-shap.png)
 
 ### Drift Monitoring
 
-![Drift Monitor](assets/images/drift-monitor.png)
+![Drift Monitor](assets/img/drift-monitor.png)
 
 ### About
 
-![About](assets/images/about-page.png)
+![About](assets/img/about-page.png)
 
 ---
 
