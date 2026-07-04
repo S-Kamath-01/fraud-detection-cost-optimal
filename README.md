@@ -88,7 +88,9 @@ fraud-detection/
 │   ├── drift.py            # PSI/KS drift monitoring
 │   └── main.py               # FastAPI app - predict, drift-report, health
 ├── streamlit_app/
-│   └── app.py                 # dashboard client (not yet built)
+│   ├── app.py                 # dashboard client - Try a Prediction,
+│   │                             Drift Monitor, About tabs
+│   └── requirements.txt        # minimal deps for Streamlit Cloud
 ├── assets/
 │   └── img/                    # committed plots/diagrams referenced by README
 ├── checkpoints/                 # saved model artifacts (gitignored, regenerated
@@ -289,7 +291,7 @@ known artifact with genuine feature distribution shift. Drift is measured
 on the model's actual input features instead, which is what would actually
 invalidate the model's assumptions in production.
 
-### 7. Serving (`src/main.py`) — done, `streamlit_app/app.py` not yet built
+### 7. Serving (`src/main.py`) — done
 
 FastAPI app exposing:
 
@@ -322,7 +324,45 @@ and SHAP contributions through the live API, correctly blocked at the
 frozen 0.11 threshold; an ordinary-shaped legitimate transaction returns a
 near-zero probability and is correctly allowed.
 
-### 8. Dashboard (`streamlit_app/app.py`) — not yet built
+### 8. Dashboard (`streamlit_app/app.py`) — done
+
+Three-tab Streamlit app, calling the FastAPI backend over HTTP only —
+never loads the model, SHAP, or any ML library directly, matching the
+same frontend/backend separation already used in the two-tower
+recommender project. Backend URL is configurable in the sidebar, so the
+same app runs unchanged against local `uvicorn`, Docker, or the deployed
+Render URL.
+
+- **Try a Prediction** — a form for the four raw transaction fields,
+  calls `/predict`, displays the decision, probability, plain-language
+  explanation, and a bar chart of SHAP contributions sorted by absolute
+  magnitude (impact, not sign).
+- **Drift Monitor** — calls `/drift-report` with a configurable window
+  size, displays the PSI/KS table with the same interpretation guidance
+  documented above.
+- **About** — project summary and headline results for anyone landing on
+  the dashboard without prior context.
+
+**End-to-end validation, including a live drift detection:** 40 varied
+synthetic transactions (low/high-value legitimate, fully-drained
+fraud-like, and mixed edge cases, split across both transaction types)
+were sent through `/predict` via a throwaway test script, populating
+Postgres with enough logged predictions to exercise `/drift-report`
+meaningfully. The report correctly detected **significant** drift on
+`amount` (PSI 1.75), `oldbalanceOrg` (PSI 1.59), and `is_transfer`
+(PSI 0.60) — all three exceed the significant-shift threshold (0.25).
+This is genuine, explainable drift, not a bug: the test script split
+transaction types roughly 50/50, while the real scoped training data is
+closer to 81% CASH_OUT / 19% TRANSFER, and deliberately included
+higher-value and fully-drained transactions than typical training data.
+Unlike the earlier train-vs-test comparison (see Threshold section above)
+where KS p-values were inflated by a large sample size while PSI stayed
+low, here **PSI and the KS statistic agree** — KS statistics are
+genuinely large (0.35–0.56), confirming real distributional shift rather
+than a sample-size artifact. Together, the two comparisons (train vs.
+test: no significant shift; train vs. this synthetic test traffic:
+significant shift) demonstrate the monitor correctly discriminating in
+both directions, not just always firing or never firing.
 
 ---
 

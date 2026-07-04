@@ -1,0 +1,6 @@
+# Streamlit Cloud reads this file from streamlit_app/ specifically.
+# Deliberately minimal - the dashboard is an HTTP client only, it never
+# loads the model or any ML library directly.
+streamlit==1.51.0
+requests==2.34.2
+pandas==3.0.3
