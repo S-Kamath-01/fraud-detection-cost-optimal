@@ -22,6 +22,10 @@ if "backend_url" not in st.session_state:
 
 with st.sidebar:
     st.header("Backend")
+    st.caption("Hosted on Render's free tier — the backend sleeps after "
+               "15 min of inactivity and can take 30-60s to wake on the "
+               "first request. If a request fails or hangs, wait a "
+               "moment and try again.")
     st.session_state.backend_url = st.text_input(
         "API base URL",
         value=st.session_state.backend_url,
@@ -30,7 +34,7 @@ with st.sidebar:
     )
     if st.button("Check connection"):
         try:
-            resp = requests.get(f"{st.session_state.backend_url}/health", timeout=5)
+            resp = requests.get(f"{st.session_state.backend_url}/health", timeout=60)
             resp.raise_for_status()
             health = resp.json()
             if all(health.values()):
@@ -70,7 +74,7 @@ with tab_predict:
         }
         try:
             resp = requests.post(
-                f"{st.session_state.backend_url}/predict", json=payload, timeout=10
+                f"{st.session_state.backend_url}/predict", json=payload, timeout=60
             )
             resp.raise_for_status()
             result = resp.json()
@@ -110,7 +114,7 @@ with tab_drift:
             resp = requests.get(
                 f"{st.session_state.backend_url}/drift-report",
                 params={"window": window},
-                timeout=10,
+                timeout=60,
             )
             resp.raise_for_status()
             result = resp.json()
