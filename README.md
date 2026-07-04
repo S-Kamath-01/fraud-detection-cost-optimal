@@ -112,7 +112,7 @@ flowchart TD
     D["PSI / KS Drift Monitor"]
 
     U --> S
-    S -->|HTTP| F
+    S -->|HTTPS| F
 
     F --> M
     F --> DB
