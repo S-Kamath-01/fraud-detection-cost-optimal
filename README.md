@@ -483,10 +483,18 @@ that produced them.
 ## Live Deployment
 
 **API:** https://fraud-detection-cost-optimal.onrender.com/docs
+**Dashboard:** https://fraud-detection-dashboard-7twy.onrender.com/
 
-Deployed on Render's free tier from the same `Dockerfile` used for local
-Docker testing above. Two things worth knowing if the link is slow on
-first load or the drift report looks empty:
+Both deployed on Render's free tier — the API from the project's
+`Dockerfile`, the dashboard as a native Python web service (no Docker
+needed for a Streamlit app). The dashboard is a pure HTTP client: it has
+no database connection and never loads the model directly. It only
+targets whatever "API base URL" is entered in its sidebar, which in turn
+is the only service actually connected to Postgres (via a `DATABASE_URL`
+environment variable set on the API service specifically).
+
+Two things worth knowing if the link is slow on first load or the drift
+report looks empty:
 
 - **Cold starts:** free web services spin down after 15 minutes of
   inactivity and take 30-60 seconds to wake on the next request. The
@@ -494,11 +502,16 @@ first load or the drift report looks empty:
   resolves it.
 - **Database resets:** Render's free Postgres expires 30 days after
   creation. Logged predictions (and therefore `/drift-report`'s available
-  history) reset whenever the database is recreated.
+  history) reset whenever the database is recreated. Local, Docker, and
+  deployed environments each have their own independent Postgres instance
+  and prediction history — a drift report run against one won't reflect
+  predictions logged against another.
 
 Verified: `/`, `/health`, `/predict`, and `/drift-report` all tested
 against the live deployment, with `/predict` returning results identical
-to local and Docker testing for the same known example.
+to local and Docker testing for the same known example. The dashboard was
+tested end-to-end against the deployed API, including a live prediction
+matching all prior environments.
 
 ## Setup
 
