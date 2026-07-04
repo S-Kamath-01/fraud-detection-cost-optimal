@@ -12,8 +12,46 @@ dataset, with three components that go beyond a standard binary classifier:
 3. **Drift monitoring** using distributional comparison (PSI / KS statistic)
    between live logged predictions and the training distribution.
 
-Status: **in progress.** This README is updated as components are built, not
-written after the fact.
+Status: **Complete.** All components below were built, tested, and
+deployed end-to-end.
+
+---
+
+## Live Demo
+
+- **Dashboard:** https://fraud-detection-dashboard-7twy.onrender.com/
+- **API Docs:** https://fraud-detection-cost-optimal.onrender.com/docs
+- **GitHub Repository:** https://github.com/S-Kamath-01/fraud-detection-cost-optimal
+
+## Screenshots
+
+### Dashboard
+
+*(screenshot placeholder)*
+
+### Prediction + SHAP
+
+*(screenshot placeholder)*
+
+### Drift Monitor
+
+*(screenshot placeholder)*
+
+---
+
+## Project Highlights
+
+- Live dashboard: https://fraud-detection-dashboard-7twy.onrender.com/
+- Live API docs: https://fraud-detection-cost-optimal.onrender.com/docs
+- Stack: XGBoost, FastAPI, PostgreSQL, Docker, Streamlit
+- Cost-sensitive threshold optimization — decision boundary derived from a
+  business cost matrix instead of a default 0.5 cutoff
+- **36.2%** reduction in expected business cost on the held-out test set
+  versus a naive 0.5 threshold
+- Per-prediction SHAP explainability using interpretable, nameable features
+- PSI/KS-based drift monitoring, reused unchanged between offline analysis
+  and a live `/drift-report` endpoint
+- End-to-end deployment on Render (API + Postgres + Streamlit dashboard)
 
 ---
 
@@ -50,15 +88,13 @@ two transaction types accordingly.
 
 ## Architecture
 
-```
-Streamlit dashboard  --HTTP-->  FastAPI backend  -->  model + threshold + SHAP
-                                       |
-                                       v
-                                  PostgreSQL (logs every prediction)
-                                       |
-                                       v
-                              drift monitor (reads logged predictions,
-                              compares to training distribution)
+```mermaid
+flowchart TD
+    A[Browser] --> B[Streamlit Dashboard]
+    B -->|HTTP| C[FastAPI Backend]
+    C --> D[XGBoost + Threshold + SHAP]
+    D --> E[(PostgreSQL)]
+    E --> F[Drift Monitor]
 ```
 
 Streamlit calls the FastAPI backend over HTTP and never loads the model
@@ -548,4 +584,4 @@ Interactive API docs at `http://127.0.0.1:8000/docs`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).git add README.md
