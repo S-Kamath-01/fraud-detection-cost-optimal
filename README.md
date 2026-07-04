@@ -584,4 +584,4 @@ Interactive API docs at `http://127.0.0.1:8000/docs`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).git add README.md
+MIT — see [LICENSE](LICENSE).
