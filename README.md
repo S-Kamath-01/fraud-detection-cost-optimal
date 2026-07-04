@@ -582,6 +582,17 @@ uvicorn src.main:app --reload
 
 Interactive API docs at `http://127.0.0.1:8000/docs`.
 
+To run the Streamlit dashboard locally:
+
+```bash
+streamlit run streamlit_app/app.py
+```
+
+Its "API base URL" field defaults to the deployed Render API (so anyone
+opening the live dashboard cold gets a working default), not
+`localhost`. Running the dashboard against a local backend instead just
+requires typing `http://localhost:8000` into that field in the sidebar.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
