@@ -17,25 +17,33 @@ deployed end-to-end.
 
 ---
 
-## Live Demo
+## 🚀 Live Demo
 
-- **Dashboard:** https://fraud-detection-dashboard-7twy.onrender.com/
-- **API Docs:** https://fraud-detection-cost-optimal.onrender.com/docs
-- **GitHub Repository:** https://github.com/S-Kamath-01/fraud-detection-cost-optimal
+| Service | URL |
+|---------|-----|
+| **Dashboard** | https://fraud-detection-dashboard-7twy.onrender.com/ |
+| **API Documentation (Swagger UI)** | https://fraud-detection-cost-optimal.onrender.com/docs |
+| **GitHub Repository** | https://github.com/S-Kamath-01/fraud-detection-cost-optimal |
 
-## Screenshots
+> **Note:** Render free-tier services may take 30–60 seconds to wake up after a period of inactivity. If the dashboard initially reports that the backend is unavailable, wait briefly and try again.
 
-### Dashboard
+## Dashboard Preview
 
-*(screenshot placeholder)*
+### Home
 
-### Prediction + SHAP
+![Dashboard Home](assets/images/dashboard-home.png)
 
-*(screenshot placeholder)*
+### Prediction + SHAP Explainability
 
-### Drift Monitor
+![Prediction](assets/images/prediction-shap.png)
 
-*(screenshot placeholder)*
+### Drift Monitoring
+
+![Drift Monitor](assets/images/drift-monitor.png)
+
+### About
+
+![About](assets/images/about-page.png)
 
 ---
 
@@ -90,11 +98,26 @@ two transaction types accordingly.
 
 ```mermaid
 flowchart TD
-    A[Browser] --> B[Streamlit Dashboard]
-    B -->|HTTP| C[FastAPI Backend]
-    C --> D[XGBoost + Threshold + SHAP]
-    D --> E[(PostgreSQL)]
-    E --> F[Drift Monitor]
+
+    U["User / Browser"]
+
+    S["Streamlit Dashboard<br/>(Render Web Service)"]
+
+    F["FastAPI Backend<br/>(Render Web Service)"]
+
+    M["XGBoost Model<br/>Cost-Optimal Threshold<br/>SHAP Explainer"]
+
+    DB["PostgreSQL<br/>Prediction Logs"]
+
+    D["PSI / KS Drift Monitor"]
+
+    U --> S
+    S -->|HTTP| F
+
+    F --> M
+    F --> DB
+
+    DB --> D
 ```
 
 Streamlit calls the FastAPI backend over HTTP and never loads the model
@@ -102,8 +125,7 @@ directly — the API is the only thing that owns the model, the chosen
 threshold, and the SHAP explainer. This keeps inference logic in one place
 and makes the frontend swappable/stateless.
 
-**Deployment:** FastAPI backend on Render, Streamlit dashboard on Streamlit
-Cloud, pointing at the deployed backend URL. Local development uses
+**Deployment:** FastAPI backend, Streamlit dashboard, and PostgreSQL are all deployed on Render. Local development uses
 `docker-compose` (FastAPI + Postgres).
 
 ## Repository structure
