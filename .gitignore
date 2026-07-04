@@ -36,6 +36,7 @@ checkpoints/*
 !checkpoints/xgb_model.json
 !checkpoints/feature_columns.json
 !checkpoints/threshold_config.json
+!checkpoints/drift_reference.csv
 *.pkl
 *.joblib
 *.h5

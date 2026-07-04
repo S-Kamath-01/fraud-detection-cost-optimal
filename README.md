@@ -95,7 +95,8 @@ fraud-detection/
 │                                  by train.py/threshold.py — not committed)
 ├── Dockerfile
 ├── docker-compose.yml
-├── requirements.txt
+├── requirements.txt          # full local dev environment (pip freeze)
+├── requirements-api.txt       # minimal runtime deps for the Docker image
 └── README.md
 ```
 
@@ -393,6 +394,36 @@ remain after scoping). All four are confirmed knowable at the time a real
 fraud decision would need to be made, and each has a specific, individually
 defensible reason for inclusion — see `src/features.py` for the diagnostic
 that produced this table.
+
+## Docker
+
+The API and Postgres run as two services via `docker-compose.yml`:
+
+```bash
+docker compose build
+docker compose up
+```
+
+The API image builds from `requirements-api.txt`, not `requirements.txt` —
+the latter is a full `pip freeze` of the local dev environment (Jupyter,
+notebooks, etc.) and includes `pywinpty`, a Windows-only package that
+cannot build on Linux. `requirements-api.txt` lists only what `main.py`
+and the modules it imports actually need at runtime. Uses
+`psycopg2-binary` rather than compiling `psycopg2` from source — a
+deliberate, documented tradeoff for this project's scope (see Dockerfile
+comments) rather than an oversight.
+
+The `api` service waits for Postgres's healthcheck (`pg_isready`) before
+starting, via `depends_on: condition: service_healthy`, avoiding a race
+condition where the app tries to connect before the database is ready.
+
+Model artifacts are baked into the image at build time (see "Deployment
+artifacts" above) rather than mounted as a volume or trained during the
+build — training and serving are kept as separate stages.
+
+Verified end-to-end: all four endpoints (`/`, `/health`, `/predict`,
+`/drift-report`) tested via Swagger UI against the containerized stack,
+returning results identical to the locally-run (non-Docker) version.
 
 ## Deployment artifacts
 
