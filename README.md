@@ -25,7 +25,7 @@ deployed end-to-end.
 | **API Documentation (Swagger UI)** | https://fraud-detection-cost-optimal.onrender.com/docs |
 | **GitHub Repository** | https://github.com/S-Kamath-01/fraud-detection-cost-optimal |
 
-> **Note:** Render free-tier services may take 30–60 seconds to wake up after a period of inactivity. If the dashboard initially reports that the backend is unavailable, wait briefly and try again.
+> **Note:** The backend may take up to a minute to wake from inactivity on Render's free tier. If the frontend doesn't respond immediately, open the API Docs once, wait briefly, then refresh the frontend.
 
 ## Dashboard Preview
 
